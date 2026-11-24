@@ -1,0 +1,1338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ThermoGreen — Urban Heat Island Analytics & Cooling Planner</title>
+  <style>
+    :root {
+      --bg: #f6f8f7;
+      --surface: #ffffff;
+      --surface-alt: #f0f4f2;
+      --text: #13221c;
+      --text-muted: #52665e;
+      --border: #dce5e0;
+      --primary: #0f766e;
+      --primary-dark: #0b5c56;
+      --primary-soft: #e6f4f1;
+      --cool: #10b981;
+      --moderate: #f59e0b;
+      --high: #f97316;
+      --severe: #ef4444;
+      --shadow: 0 4px 20px rgba(15, 35, 28, 0.06);
+      --radius: 14px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.55;
+      scroll-behavior: smooth;
+    }
+
+    /* Navbar */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-wrap {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0.85rem 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      text-decoration: none;
+      color: var(--text);
+      font-weight: 800;
+      font-size: 1.15rem;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-badge {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #0f766e, #10b981);
+      display: grid;
+      place-items: center;
+      color: #fff;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 1.2rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .nav-links a {
+      text-decoration: none;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      font-weight: 600;
+      transition: color 0.15s;
+    }
+
+    .nav-links a:hover { color: var(--primary); }
+
+    .city-picker {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--surface-alt);
+      padding: 0.35rem 0.7rem;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+    }
+
+    .city-picker label {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+
+    .city-picker select {
+      border: none;
+      background: transparent;
+      font-weight: 700;
+      color: var(--primary-dark);
+      font-size: 0.9rem;
+      cursor: pointer;
+      outline: none;
+    }
+
+    /* Container */
+    main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1.5rem 1.25rem 4rem;
+    }
+
+    /* Hero */
+    .hero {
+      background: linear-gradient(135deg, #0d3b36 0%, #0f766e 55%, #166534 100%);
+      color: #fff;
+      border-radius: 20px;
+      padding: 2.4rem 2rem;
+      margin-bottom: 1.75rem;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 12px 32px rgba(13, 59, 54, 0.18);
+    }
+
+    .hero-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      padding: 0.28rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      margin-bottom: 0.9rem;
+    }
+
+    .hero h1 {
+      font-size: clamp(1.7rem, 3.2vw, 2.55rem);
+      line-height: 1.18;
+      letter-spacing: -0.025em;
+      max-width: 720px;
+      margin-bottom: 0.75rem;
+    }
+
+    .hero p {
+      color: rgba(255, 255, 255, 0.88);
+      max-width: 680px;
+      font-size: 0.98rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin-bottom: 1.75rem;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.65rem 1.15rem;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      text-decoration: none;
+      cursor: pointer;
+      border: none;
+      transition: transform 0.12s, background 0.15s;
+    }
+
+    .btn:active { transform: scale(0.98); }
+
+    .btn-white {
+      background: #fff;
+      color: #0d3b36;
+    }
+    .btn-white:hover { background: #ecfdf5; }
+
+    .btn-outline-white {
+      background: rgba(255, 255, 255, 0.12);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.35);
+    }
+    .btn-outline-white:hover { background: rgba(255, 255, 255, 0.2); }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+    }
+    .btn-primary:hover { background: var(--primary-dark); }
+
+    .btn-soft {
+      background: var(--surface-alt);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-soft:hover { background: #e3ece7; }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(185px, 1fr));
+      gap: 0.9rem;
+    }
+
+    .kpi-card {
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 14px;
+      padding: 0.95rem 1.05rem;
+    }
+
+    .kpi-label {
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: rgba(255, 255, 255, 0.8);
+      margin-bottom: 0.25rem;
+    }
+
+    .kpi-value {
+      font-size: 1.6rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    .kpi-sub {
+      font-size: 0.78rem;
+      color: rgba(255, 255, 255, 0.82);
+      margin-top: 0.15rem;
+    }
+
+    /* Section Headings */
+    .section {
+      margin-top: 2.25rem;
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+    }
+
+    .section-head h2 {
+      font-size: 1.38rem;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .section-head p {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      margin-top: 0.15rem;
+    }
+
+    /* Card */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      box-shadow: var(--shadow);
+    }
+
+    /* Map + Zone Detail Grid */
+    .map-grid {
+      display: grid;
+      grid-template-columns: 1.35fr 1fr;
+      gap: 1.25rem;
+    }
+
+    @media (max-width: 900px) {
+      .map-grid { grid-template-columns: 1fr; }
+    }
+
+    .legend {
+      display: flex;
+      gap: 0.85rem;
+      flex-wrap: wrap;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 0.85rem;
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .dot {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .svg-map-wrap {
+      background: #eef3f0;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 0.75rem;
+      overflow: hidden;
+    }
+
+    svg#thermalMap {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .zone-tile {
+      cursor: pointer;
+      transition: transform 0.15s, filter 0.15s;
+    }
+    .zone-tile:hover { filter: brightness(1.06); }
+    .zone-tile.active rect {
+      stroke: #0f172a;
+      stroke-width: 3.5;
+    }
+
+    /* Zone Detail Panel */
+    .zone-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+      padding-bottom: 0.85rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .zone-name {
+      font-size: 1.22rem;
+      font-weight: 800;
+    }
+
+    .zone-type {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.25rem 0.65rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .badge-severe { background: #fee2e2; color: #b91c1c; }
+    .badge-high { background: #ffedd5; color: #c2410c; }
+    .badge-moderate { background: #fef3c7; color: #b45309; }
+    .badge-cool { background: #d1fae5; color: #047857; }
+
+    .metric-row {
+      margin-bottom: 0.85rem;
+    }
+
+    .metric-top {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 0.3rem;
+    }
+
+    .bar-track {
+      height: 9px;
+      background: var(--surface-alt);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: 999px;
+      transition: width 0.35s ease;
+    }
+
+    .driver-box {
+      background: var(--surface-alt);
+      border-radius: 10px;
+      padding: 0.85rem;
+      margin-top: 1rem;
+      font-size: 0.86rem;
+    }
+
+    .driver-box strong { display: block; margin-bottom: 0.25rem; }
+
+    /* Cooling Simulator */
+    .sim-grid {
+      display: grid;
+      grid-template-columns: 1.1fr 1fr;
+      gap: 1.25rem;
+    }
+
+    @media (max-width: 900px) {
+      .sim-grid { grid-template-columns: 1fr; }
+    }
+
+    .slider-group {
+      margin-bottom: 1.1rem;
+    }
+
+    .slider-head {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.88rem;
+      font-weight: 700;
+      margin-bottom: 0.35rem;
+    }
+
+    .slider-head span.val {
+      color: var(--primary);
+      background: var(--primary-soft);
+      padding: 0.1rem 0.5rem;
+      border-radius: 6px;
+      font-size: 0.82rem;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--primary);
+      cursor: pointer;
+    }
+
+    .slider-hint {
+      font-size: 0.77rem;
+      color: var(--text-muted);
+      margin-top: 0.15rem;
+    }
+
+    .sim-results {
+      background: linear-gradient(160deg, #f0fdf4 0%, #ecfeff 100%);
+      border: 1px solid #bbf7d0;
+      border-radius: 14px;
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .temp-compare {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .temp-box { text-align: center; flex: 1; }
+    .temp-box .lbl { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; }
+    .temp-box .num { font-size: 1.65rem; font-weight: 800; }
+
+    .impact-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+
+    .impact-card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.8rem;
+    }
+
+    .impact-card .lbl { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; }
+    .impact-card .num { font-size: 1.25rem; font-weight: 800; color: var(--primary-dark); }
+
+    /* Table & Filters */
+    .filter-bar {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+    }
+
+    .filter-btn {
+      padding: 0.4rem 0.8rem;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+
+    .filter-btn.active {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+
+    .table-wrap { overflow-x: auto; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 0.75rem 0.85rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+      background: var(--surface-alt);
+    }
+
+    tr:hover td { background: #fafcfb; }
+
+    /* Advisory Tabs */
+    .tabs {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+    }
+
+    .tab-btn {
+      padding: 0.5rem 0.9rem;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--surface-alt);
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+
+    .tab-btn.active {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+
+    .advisory-box {
+      background: var(--surface-alt);
+      border-left: 4px solid var(--primary);
+      border-radius: 10px;
+      padding: 1rem 1.15rem;
+    }
+
+    /* Architecture IPO */
+    .ipo-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+    }
+
+    @media (max-width: 820px) {
+      .ipo-grid { grid-template-columns: 1fr; }
+    }
+
+    .ipo-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.2rem;
+      position: relative;
+    }
+
+    .ipo-step {
+      display: inline-block;
+      font-size: 0.74rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--primary);
+      background: var(--primary-soft);
+      padding: 0.2rem 0.6rem;
+      border-radius: 6px;
+      margin-bottom: 0.6rem;
+    }
+
+    .ipo-card h3 {
+      font-size: 1.05rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .ipo-card ul {
+      padding-left: 1.1rem;
+      font-size: 0.86rem;
+      color: var(--text-muted);
+    }
+
+    .ipo-card li { margin-bottom: 0.3rem; }
+
+    /* Benefits */
+    .benefits-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 0.9rem;
+      margin-top: 1rem;
+    }
+
+    .benefit-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem;
+    }
+
+    .benefit-card h4 {
+      font-size: 0.94rem;
+      margin-bottom: 0.3rem;
+      color: var(--primary-dark);
+    }
+
+    .benefit-card p {
+      font-size: 0.83rem;
+      color: var(--text-muted);
+    }
+
+    footer {
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+      padding: 1.5rem 1.25rem;
+      text-align: center;
+      font-size: 0.84rem;
+      color: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="nav-wrap">
+    <a class="brand" href="#">
+      <span class="brand-badge">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/>
+        </svg>
+      </span>
+      ThermoGreen
+    </a>
+
+    <nav class="nav-links">
+      <a href="#map-section">Thermal Map</a>
+      <a href="#simulator-section">Cooling Simulator</a>
+      <a href="#table-section">Zone Data</a>
+      <a href="#advisory-section">Heat Advisory</a>
+      <a href="#architecture-section">Architecture &amp; EVS</a>
+    </nav>
+
+    <div class="city-picker">
+      <label for="citySelect">City:</label>
+      <select id="citySelect">
+        <option value="bengaluru">Bengaluru</option>
+        <option value="delhi">Delhi NCR</option>
+        <option value="hyderabad">Hyderabad</option>
+        <option value="chennai">Chennai</option>
+      </select>
+    </div>
+  </div>
+</header>
+
+<main>
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-tag">EVS Digital Solution · BCS508 · Urban Heat Islands</div>
+    <h1>Map Urban Heat Islands. Simulate Cooler, Greener Cities.</h1>
+    <p>
+      ThermoGreen combines satellite Land Surface Temperature (LST), NDVI vegetation cover, and IoT micro-climate sensors to detect urban heat hotspots and model how trees, cool roofs, and permeable pavements lower city temperatures.
+    </p>
+    <div class="hero-actions">
+      <a href="#map-section" class="btn btn-white">Explore Thermal Map</a>
+      <a href="#simulator-section" class="btn btn-outline-white">Launch Cooling Simulator</a>
+    </div>
+
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-label">Peak UHI Intensity</div>
+        <div class="kpi-value" id="kpiUhi">+5.4°C</div>
+        <div class="kpi-sub">Above rural baseline</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Avg Surface Temp</div>
+        <div class="kpi-value" id="kpiLst">37.8°C</div>
+        <div class="kpi-sub">Daytime LST (Landsat-9)</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Avg Green Canopy</div>
+        <div class="kpi-value" id="kpiGreen">24%</div>
+        <div class="kpi-sub">Target: &ge; 33% urban cover</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Severe Hotspots</div>
+        <div class="kpi-value" id="kpiHotspots">3 Zones</div>
+        <div class="kpi-sub">Priority cooling required</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- INTERACTIVE THERMAL MAP -->
+  <section class="section" id="map-section">
+    <div class="section-head">
+      <div>
+        <h2>Interactive Thermal Hotspot Map</h2>
+        <p>Click any neighborhood zone to inspect its Land Surface Temperature, UHI intensity, and canopy deficit.</p>
+      </div>
+    </div>
+
+    <div class="map-grid">
+      <div class="card">
+        <div class="legend">
+          <span class="legend-item"><span class="dot" style="background:#10b981"></span> Cool (&lt;34°C)</span>
+          <span class="legend-item"><span class="dot" style="background:#f59e0b"></span> Moderate (34–37°C)</span>
+          <span class="legend-item"><span class="dot" style="background:#f97316"></span> High (37–40°C)</span>
+          <span class="legend-item"><span class="dot" style="background:#ef4444"></span> Severe (&gt;40°C)</span>
+        </div>
+        <div class="svg-map-wrap">
+          <svg id="thermalMap" viewBox="0 0 640 360" role="img" aria-label="Urban Heat Island Zone Map"></svg>
+        </div>
+      </div>
+
+      <div class="card" id="zoneDetailCard">
+        <div class="zone-header">
+          <div>
+            <div class="zone-name" id="detailName">—</div>
+            <div class="zone-type" id="detailType">—</div>
+          </div>
+          <span class="badge" id="detailBadge">—</span>
+        </div>
+
+        <div class="metric-row">
+          <div class="metric-top"><span>Land Surface Temp (LST)</span><span id="detailLst">—</span></div>
+          <div class="bar-track"><div class="bar-fill" id="barLst" style="width:0%"></div></div>
+        </div>
+
+        <div class="metric-row">
+          <div class="metric-top"><span>UHI Intensity (&Delta;T vs Rural)</span><span id="detailUhi">—</span></div>
+          <div class="bar-track"><div class="bar-fill" id="barUhi" style="width:0%"></div></div>
+        </div>
+
+        <div class="metric-row">
+          <div class="metric-top"><span>Green Canopy Cover (NDVI)</span><span id="detailGreen">—</span></div>
+          <div class="bar-track"><div class="bar-fill" id="barGreen" style="width:0%; background:#10b981;"></div></div>
+        </div>
+
+        <div class="metric-row">
+          <div class="metric-top"><span>Impervious Asphalt / Concrete</span><span id="detailConcrete">—</span></div>
+          <div class="bar-track"><div class="bar-fill" id="barConcrete" style="width:0%; background:#64748b;"></div></div>
+        </div>
+
+        <div class="driver-box">
+          <strong>Primary Heat Drivers</strong>
+          <span id="detailDriver">—</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- COOLING INTERVENTION SIMULATOR -->
+  <section class="section" id="simulator-section">
+    <div class="section-head">
+      <div>
+        <h2>Urban Cooling Intervention Simulator</h2>
+        <p>Model how green infrastructure reduces surface temperature, AC electricity demand, and CO₂ emissions in <strong id="simZoneLabel">the selected zone</strong>.</p>
+      </div>
+      <div style="display:flex; gap:0.5rem;">
+        <button class="btn btn-soft" id="btnResetSim">Reset</button>
+        <button class="btn btn-primary" id="btnOptimalSim">Apply Optimal Plan</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="sim-grid">
+        <div>
+          <div class="slider-group">
+            <div class="slider-head">
+              <label for="sTrees">Urban Tree Canopy Expansion</label>
+              <span class="val" id="vTrees">+15%</span>
+            </div>
+            <input type="range" id="sTrees" min="0" max="40" value="15" />
+            <div class="slider-hint">Native shade trees along roads, parks, and campus corridors (~0.09°C cooling per +1% canopy).</div>
+          </div>
+
+          <div class="slider-group">
+            <div class="slider-head">
+              <label for="sRoofs">Cool / Reflective Roof Adoption</label>
+              <span class="val" id="vRoofs">40%</span>
+            </div>
+            <input type="range" id="sRoofs" min="0" max="100" value="40" />
+            <div class="slider-hint">High-albedo white/solar-reflective coatings on residential &amp; commercial rooftops.</div>
+          </div>
+
+          <div class="slider-group">
+            <div class="slider-head">
+              <label for="sPavement">Permeable / Cool Pavements</label>
+              <span class="val" id="vPavement">25%</span>
+            </div>
+            <input type="range" id="sPavement" min="0" max="80" value="25" />
+            <div class="slider-hint">Porous pavers and light-colored road surfaces that retain less heat than dark asphalt.</div>
+          </div>
+
+          <div class="slider-group" style="margin-bottom:0;">
+            <div class="slider-head">
+              <label for="sWater">Micro-Water Bodies &amp; Mist Corridors</label>
+              <span class="val" id="vWater">3 Units</span>
+            </div>
+            <input type="range" id="sWater" min="0" max="10" value="3" />
+            <div class="slider-hint">Restored urban lakes, bioswales, and evaporative cooling hubs near transit stops.</div>
+          </div>
+        </div>
+
+        <div class="sim-results">
+          <div>
+            <div style="font-size:0.8rem; font-weight:700; color:#047857; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:0.65rem;">
+              Projected Cooling Impact
+            </div>
+
+            <div class="temp-compare">
+              <div class="temp-box">
+                <div class="lbl">Current LST</div>
+                <div class="num" id="simCurrTemp" style="color:#ef4444;">41.2°C</div>
+              </div>
+              <div style="font-size:1.3rem; font-weight:800; color:#0f766e;">&rarr;</div>
+              <div class="temp-box">
+                <div class="lbl">Projected LST</div>
+                <div class="num" id="simNewTemp" style="color:#047857;">38.1°C</div>
+              </div>
+            </div>
+
+            <div class="impact-grid">
+              <div class="impact-card">
+                <div class="lbl">Temperature Drop</div>
+                <div class="num" id="simDrop">-3.1°C</div>
+              </div>
+              <div class="impact-card">
+                <div class="lbl">AC Energy Saved / yr</div>
+                <div class="num" id="simEnergy">1,420 MWh</div>
+              </div>
+              <div class="impact-card">
+                <div class="lbl">CO₂ Avoided / yr</div>
+                <div class="num" id="simCo2">1,164 t</div>
+              </div>
+              <div class="impact-card">
+                <div class="lbl">New Heat Risk</div>
+                <div class="num" id="simRisk" style="font-size:1rem;">Moderate</div>
+              </div>
+            </div>
+          </div>
+
+          <div style="font-size:0.8rem; color:var(--text-muted); border-top:1px solid #bbf7d0; padding-top:0.65rem;">
+            Model basis: Empirical UHI cooling coefficients from urban climatology studies (0.82 t CO₂ / MWh Indian grid factor).
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ZONE DATA TABLE -->
+  <section class="section" id="table-section">
+    <div class="section-head">
+      <div>
+        <h2>Neighborhood Thermal Dataset</h2>
+        <p>Filter and compare all monitored zones in the selected city.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="filter-bar" id="filterBar">
+        <button class="filter-btn active" data-filter="all">All Zones</button>
+        <button class="filter-btn" data-filter="Severe">Severe</button>
+        <button class="filter-btn" data-filter="High">High</button>
+        <button class="filter-btn" data-filter="Moderate">Moderate</button>
+        <button class="filter-btn" data-filter="Cool">Cool</button>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Zone / Locality</th>
+              <th>Land Use</th>
+              <th>Surface Temp (LST)</th>
+              <th>UHI (&Delta;T)</th>
+              <th>Green Canopy</th>
+              <th>Risk Level</th>
+            </tr>
+          </thead>
+          <tbody id="zoneTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- HEAT ADVISORY -->
+  <section class="section" id="advisory-section">
+    <div class="section-head">
+      <div>
+        <h2>Targeted Heat-Risk Advisory</h2>
+        <p>Actionable guidance for <strong id="advZoneName">the selected zone</strong> based on its current thermal category.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="tabs" id="advisoryTabs">
+        <button class="tab-btn active" data-profile="public">General Public</button>
+        <button class="tab-btn" data-profile="workers">Outdoor Workers</button>
+        <button class="tab-btn" data-profile="vulnerable">Elderly &amp; Children</button>
+        <button class="tab-btn" data-profile="students">Campus Students</button>
+      </div>
+      <div class="advisory-box" id="advisoryText"></div>
+    </div>
+  </section>
+
+  <!-- SYSTEM ARCHITECTURE & EVS BENEFITS -->
+  <section class="section" id="architecture-section">
+    <div class="section-head">
+      <div>
+        <h2>System Architecture (Input &rarr; Processing &rarr; Output)</h2>
+        <p>Designed for BCS508 Environmental Studies &amp; E-Waste Management — Digital Solution Framework.</p>
+      </div>
+    </div>
+
+    <div class="ipo-grid">
+      <div class="ipo-card">
+        <span class="ipo-step">1 · Input</span>
+        <h3>Multi-Source Thermal &amp; GIS Data</h3>
+        <ul>
+          <li><strong>Satellite Imagery:</strong> Landsat-8/9 Thermal Infrared (TIRS) &amp; MODIS Land Surface Temperature.</li>
+          <li><strong>IoT Micro-Sensors:</strong> Low-cost ESP32 + BME280 nodes measuring street-level air temp &amp; humidity.</li>
+          <li><strong>GIS &amp; Land Use:</strong> Sentinel-2 NDVI vegetation index, building footprint &amp; road asphalt maps.</li>
+          <li><strong>Weather Feeds:</strong> IMD ambient temperature &amp; rural baseline station data.</li>
+        </ul>
+      </div>
+
+      <div class="ipo-card">
+        <span class="ipo-step">2 · Processing</span>
+        <h3>Spatial Analytics &amp; Cooling Model</h3>
+        <ul>
+          <li><strong>UHI Calculation:</strong> Computes &Delta;T = T<sub>urban</sub> &minus; T<sub>rural</sub> per 500m grid cell.</li>
+          <li><strong>Hotspot Clustering:</strong> Identifies severe thermal islands using spatial clustering (DBSCAN).</li>
+          <li><strong>ML Regression Engine:</strong> Predicts &Delta;T reduction from canopy, cool roofs, and permeable surfaces.</li>
+          <li><strong>Energy &amp; Carbon Estimator:</strong> Converts cooling gains into kWh AC savings and CO₂ avoided.</li>
+        </ul>
+      </div>
+
+      <div class="ipo-card">
+        <span class="ipo-step">3 · Output</span>
+        <h3>Interactive Decision Support</h3>
+        <ul>
+          <li><strong>Color-Coded Thermal Map:</strong> Real-time neighborhood hotspot visualization for citizens &amp; planners.</li>
+          <li><strong>Cooling Simulator:</strong> What-if intervention planner for municipal corporations &amp; campuses.</li>
+          <li><strong>Heat Advisories:</strong> Profile-specific health alerts for workers, elderly, and students.</li>
+          <li><strong>Priority Action Reports:</strong> Ranked zones for urban forestry and cool-roof subsidies.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="benefits-grid">
+      <div class="benefit-card">
+        <h4>1. Lower Urban Peak Temperatures</h4>
+        <p>Guides targeted tree plantation and cool-roof deployment to cut localized surface temperatures by 2°C–4.5°C.</p>
+      </div>
+      <div class="benefit-card">
+        <h4>2. Reduced AC Energy &amp; Carbon Emissions</h4>
+        <p>Cooler micro-climates lower peak summer cooling electricity demand, directly cutting thermal power CO₂ emissions.</p>
+      </div>
+      <div class="benefit-card">
+        <h4>3. Improved Public Health &amp; Safety</h4>
+        <p>Early hotspot warnings protect outdoor workers, elderly citizens, and children from heatstroke and dehydration.</p>
+      </div>
+      <div class="benefit-card">
+        <h4>4. Urban Biodiversity &amp; Stormwater Relief</h4>
+        <p>Promotes native tree corridors and permeable pavements that recharge groundwater and support urban wildlife.</p>
+      </div>
+      <div class="benefit-card">
+        <h4>5. UN SDG Alignment</h4>
+        <p>Directly advances SDG 11 (Sustainable Cities), SDG 13 (Climate Action), SDG 7 (Clean Energy), and SDG 3 (Health).</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <strong>ThermoGreen</strong> — Digital Solution for Urban Heat Islands · Environmental Studies &amp; E-Waste Management (BCS508)
+</footer>
+
+<script>
+  const CITIES = {
+    bengaluru: {
+      name: "Bengaluru",
+      ruralBaseline: 33.4,
+      zones: [
+        { id: "peenya", name: "Peenya Industrial Area", type: "Industrial & Warehousing", lst: 41.8, green: 11, concrete: 84, driver: "Metal factory roofs, dense asphalt yards, minimal tree cover." },
+        { id: "majestic", name: "Majestic Transit Hub", type: "High-Density Commercial", lst: 40.9, green: 13, concrete: 82, driver: "Heavy bus/traffic exhaust, concrete terminals, zero shade canopy." },
+        { id: "whitefield", name: "Whitefield IT Corridor", type: "Tech Park & High-Rise", lst: 39.6, green: 18, concrete: 75, driver: "Glass-facade buildings, AC waste heat, wide paved arterials." },
+        { id: "ecity", name: "Electronic City", type: "Tech & Industrial", lst: 38.9, green: 20, concrete: 72, driver: "Elevated highway concrete, large surface parking lots." },
+        { id: "koramangala", name: "Koramangala", type: "Mixed Residential-Commercial", lst: 36.8, green: 28, concrete: 61, driver: "Moderate avenue trees offset by commercial rooftops." },
+        { id: "hebbal", name: "Hebbal Lake Belt", type: "Residential & Wetland", lst: 35.4, green: 34, concrete: 50, driver: "Lake evaporative cooling moderates highway heat." },
+        { id: "cubbon", name: "Cubbon Park", type: "Urban Forest / Green Lung", lst: 32.1, green: 76, concrete: 14, driver: "Dense mature canopy creates a strong cool-island effect." },
+        { id: "lalbagh", name: "Lalbagh Botanical Belt", type: "Botanical Reserve", lst: 32.6, green: 71, concrete: 18, driver: "High NDVI vegetation and water body keep surface cool." }
+      ]
+    },
+    delhi: {
+      name: "Delhi NCR",
+      ruralBaseline: 37.2,
+      zones: [
+        { id: "okhla", name: "Okhla Industrial Estate", type: "Industrial Zone", lst: 45.6, green: 9, concrete: 87, driver: "Industrial heat exhaust, bare dark roofs, sparse greenery." },
+        { id: "connaught", name: "Connaught Place", type: "Commercial Core", lst: 43.9, green: 16, concrete: 78, driver: "High pedestrian/traffic density and heat-trapping masonry." },
+        { id: "noida62", name: "Noida Sector 62", type: "IT & Institutional", lst: 42.8, green: 19, concrete: 74, driver: "Expansive asphalt roads and glass office towers." },
+        { id: "dwarka", name: "Dwarka Sub-City", type: "High-Rise Residential", lst: 41.5, green: 22, concrete: 68, driver: "Wide concrete sectors with young, sparse tree cover." },
+        { id: "rohini", name: "Rohini", type: "Dense Residential", lst: 42.1, green: 17, concrete: 73, driver: "Tightly packed concrete housing and rooftop AC units." },
+        { id: "vasant", name: "Vasant Kunj", type: "Residential & Ridge", lst: 39.2, green: 33, concrete: 52, driver: "Proximity to Aravalli scrub forest moderates heat." },
+        { id: "lodhi", name: "Lodhi Gardens Belt", type: "Heritage Park", lst: 36.4, green: 68, concrete: 21, driver: "Dense heritage tree canopy and shaded lawns." },
+        { id: "ridge", name: "Central Ridge Forest", type: "Protected Urban Forest", lst: 35.8, green: 79, concrete: 11, driver: "Continuous native woodland acts as Delhi's cooling lung." }
+      ]
+    },
+    hyderabad: {
+      name: "Hyderabad",
+      ruralBaseline: 35.5,
+      zones: [
+        { id: "patancheru", name: "Patancheru Industrial", type: "Industrial Belt", lst: 43.4, green: 10, concrete: 85, driver: "Industrial sheds, rocky barren patches, low canopy." },
+        { id: "hitech", name: "HITEC City", type: "IT & Commercial", lst: 41.7, green: 15, concrete: 79, driver: "High-rise glass towers, heavy AC discharge, concrete flyovers." },
+        { id: "kukatpally", name: "Kukatpally", type: "Dense Residential", lst: 40.8, green: 16, concrete: 77, driver: "High building density and minimal neighborhood parks." },
+        { id: "secunderabad", name: "Secunderabad Core", type: "Transit & Commercial", lst: 39.5, green: 21, concrete: 70, driver: "Railway yards, busy commercial streets." },
+        { id: "gachibowli", name: "Gachibowli", type: "Tech & Campus", lst: 38.4, green: 26, concrete: 63, driver: "Campus greenery helps offset new highway concrete." },
+        { id: "banjara", name: "Banjara Hills", type: "Mixed Residential", lst: 37.2, green: 32, concrete: 55, driver: "Hilly terrain with moderate residential tree cover." },
+        { id: "kbr", name: "KBR National Park", type: "Urban National Park", lst: 34.1, green: 78, concrete: 12, driver: "Protected deciduous forest significantly cools surroundings." },
+        { id: "hussain", name: "Hussain Sagar Waterfront", type: "Lakefront Zone", lst: 35.2, green: 44, concrete: 38, driver: "Large urban lake provides daytime evaporative cooling." }
+      ]
+    },
+    chennai: {
+      name: "Chennai",
+      ruralBaseline: 34.8,
+      zones: [
+        { id: "manali", name: "Manali Industrial Area", type: "Petrochemical & Heavy Ind.", lst: 42.9, green: 8, concrete: 88, driver: "Industrial stacks, dark storage yards, zero shade." },
+        { id: "tnagar", name: "T. Nagar Commercial", type: "Dense Retail Core", lst: 41.2, green: 11, concrete: 84, driver: "Continuous concrete retail blocks and heavy traffic." },
+        { id: "omr", name: "OMR IT Expressway", type: "Tech Corridor", lst: 39.8, green: 17, concrete: 76, driver: "Wide 6-lane asphalt corridor and glass IT campuses." },
+        { id: "ambattur", name: "Ambattur Estate", type: "Industrial & Residential", lst: 40.3, green: 15, concrete: 78, driver: "Factory rooftops and dense urban sprawl." },
+        { id: "velachery", name: "Velachery", type: "Residential-Commercial", lst: 38.5, green: 22, concrete: 67, driver: "Rapid urbanization near wetland fringe." },
+        { id: "adyar", name: "Adyar Estuary Belt", type: "Coastal Residential", lst: 36.2, green: 36, concrete: 49, driver: "Sea breeze and tree-lined avenues cool the zone." },
+        { id: "guindy", name: "Guindy National Park", type: "Protected Urban Forest", lst: 33.4, green: 81, concrete: 10, driver: "Dense tropical dry evergreen forest." },
+        { id: "iitm", name: "IIT Madras Green Campus", type: "Eco-Campus", lst: 33.9, green: 74, concrete: 16, driver: "Preserved woodland campus with shaded walkways." }
+      ]
+    }
+  };
+
+  let currentCityKey = "bengaluru";
+  let selectedZoneId = "peenya";
+  let currentFilter = "all";
+  let currentProfile = "public";
+
+  function getRisk(lst) {
+    if (lst >= 40) return { label: "Severe", color: "#ef4444", cls: "badge-severe" };
+    if (lst >= 37) return { label: "High", color: "#f97316", cls: "badge-high" };
+    if (lst >= 34) return { label: "Moderate", color: "#f59e0b", cls: "badge-moderate" };
+    return { label: "Cool", color: "#10b981", cls: "badge-cool" };
+  }
+
+  function renderAll() {
+    const city = CITIES[currentCityKey];
+    const zones = city.zones;
+    if (!zones.find(z => z.id === selectedZoneId)) {
+      selectedZoneId = zones[0].id;
+    }
+
+    // KPIs
+    const maxUhi = Math.max(...zones.map(z => z.lst - city.ruralBaseline));
+    const avgLst = zones.reduce((s, z) => s + z.lst, 0) / zones.length;
+    const avgGreen = Math.round(zones.reduce((s, z) => s + z.green, 0) / zones.length);
+    const severeCount = zones.filter(z => z.lst >= 40).length;
+
+    document.getElementById("kpiUhi").textContent = `+${maxUhi.toFixed(1)}°C`;
+    document.getElementById("kpiLst").textContent = `${avgLst.toFixed(1)}°C`;
+    document.getElementById("kpiGreen").textContent = `${avgGreen}%`;
+    document.getElementById("kpiHotspots").textContent = `${severeCount} Zone${severeCount === 1 ? "" : "s"}`;
+
+    renderMap(city);
+    renderZoneDetail(city);
+    renderTable(city);
+    updateSimulator();
+    renderAdvisory();
+  }
+
+  function renderMap(city) {
+    const svg = document.getElementById("thermalMap");
+    svg.innerHTML = "";
+
+    // Subtle grid roads background
+    const bgLines = `
+      <g stroke="#d5e0da" stroke-width="1.5" stroke-dasharray="4 4">
+        <line x1="0" y1="180" x2="640" y2="180"/>
+        <line x1="160" y1="0" x2="160" y2="360"/>
+        <line x1="320" y1="0" x2="320" y2="360"/>
+        <line x1="480" y1="0" x2="480" y2="360"/>
+      </g>
+    `;
+    svg.insertAdjacentHTML("beforeend", bgLines);
+
+    city.zones.forEach((z, idx) => {
+      const col = idx % 4;
+      const row = Math.floor(idx / 4);
+      const x = 14 + col * 156;
+      const y = 16 + row * 168;
+      const w = 144;
+      const h = 152;
+      const risk = getRisk(z.lst);
+      const uhi = (z.lst - city.ruralBaseline).toFixed(1);
+      const isActive = z.id === selectedZoneId;
+
+      const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+      g.setAttribute("class", `zone-tile ${isActive ? "active" : ""}`);
+      g.addEventListener("click", () => {
+        selectedZoneId = z.id;
+        renderAll();
+      });
+
+      g.innerHTML = `
+        <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="12" fill="${risk.color}" fill-opacity="0.88" stroke="#ffffff" stroke-width="2"/>
+        <text x="${x + 12}" y="${y + 26}" fill="#ffffff" font-size="11" font-weight="700" opacity="0.92">${risk.label.toUpperCase()}</text>
+        <text x="${x + 12}" y="${y + 64}" fill="#ffffff" font-size="24" font-weight="800">${z.lst.toFixed(1)}°C</text>
+        <text x="${x + 12}" y="${y + 84}" fill="#ffffff" font-size="11.5" font-weight="600" opacity="0.95">UHI: ${uhi >= 0 ? "+" : ""}${uhi}°C</text>
+        <text x="${x + 12}" y="${y + 114}" fill="#ffffff" font-size="12" font-weight="700">${z.name.length > 18 ? z.name.slice(0, 17) + "…" : z.name}</text>
+        <text x="${x + 12}" y="${y + 134}" fill="#ffffff" font-size="10.5" opacity="0.9">Green Cover: ${z.green}%</text>
+      `;
+      svg.appendChild(g);
+    });
+  }
+
+  function renderZoneDetail(city) {
+    const z = city.zones.find(item => item.id === selectedZoneId);
+    const risk = getRisk(z.lst);
+    const uhi = z.lst - city.ruralBaseline;
+
+    document.getElementById("detailName").textContent = z.name;
+    document.getElementById("detailType").textContent = `${z.type} · ${city.name}`;
+    const badge = document.getElementById("detailBadge");
+    badge.textContent = `${risk.label} Heat`;
+    badge.className = `badge ${risk.cls}`;
+
+    document.getElementById("detailLst").textContent = `${z.lst.toFixed(1)}°C`;
+    document.getElementById("barLst").style.width = `${Math.min(100, (z.lst / 48) * 100)}%`;
+    document.getElementById("barLst").style.background = risk.color;
+
+    document.getElementById("detailUhi").textContent = `${uhi >= 0 ? "+" : ""}${uhi.toFixed(1)}°C`;
+    document.getElementById("barUhi").style.width = `${Math.max(8, Math.min(100, ((uhi + 3) / 12) * 100))}%`;
+    document.getElementById("barUhi").style.background = uhi > 3 ? "#ef4444" : uhi > 0 ? "#f59e0b" : "#10b981";
+
+    document.getElementById("detailGreen").textContent = `${z.green}%`;
+    document.getElementById("barGreen").style.width = `${z.green}%`;
+
+    document.getElementById("detailConcrete").textContent = `${z.concrete}%`;
+    document.getElementById("barConcrete").style.width = `${z.concrete}%`;
+
+    document.getElementById("detailDriver").textContent = z.driver;
+    document.getElementById("simZoneLabel").textContent = z.name;
+    document.getElementById("advZoneName").textContent = z.name;
+  }
+
+  function updateSimulator() {
+    const city = CITIES[currentCityKey];
+    const z = city.zones.find(item => item.id === selectedZoneId);
+
+    const trees = Number(document.getElementById("sTrees").value);
+    const roofs = Number(document.getElementById("sRoofs").value);
+    const pavement = Number(document.getElementById("sPavement").value);
+    const water = Number(document.getElementById("sWater").value);
+
+    document.getElementById("vTrees").textContent = `+${trees}%`;
+    document.getElementById("vRoofs").textContent = `${roofs}%`;
+    document.getElementById("vPavement").textContent = `${pavement}%`;
+    document.getElementById("vWater").textContent = `${water} Units`;
+
+    // Empirical UHI cooling model
+    const drop = (trees * 0.085) + (roofs * 0.018) + (pavement * 0.012) + (water * 0.14);
+    const clampedDrop = Math.min(drop, Math.max(0.5, z.lst - 30.5));
+    const newTemp = z.lst - clampedDrop;
+    const energyMWh = Math.round(clampedDrop * 460);
+    const co2Tonnes = Math.round(energyMWh * 0.82);
+    const newRisk = getRisk(newTemp);
+
+    document.getElementById("simCurrTemp").textContent = `${z.lst.toFixed(1)}°C`;
+    document.getElementById("simNewTemp").textContent = `${newTemp.toFixed(1)}°C`;
+    document.getElementById("simDrop").textContent = `-${clampedDrop.toFixed(1)}°C`;
+    document.getElementById("simEnergy").textContent = `${energyMWh.toLocaleString()} MWh`;
+    document.getElementById("simCo2").textContent = `${co2Tonnes.toLocaleString()} t`;
+    document.getElementById("simRisk").textContent = newRisk.label;
+    document.getElementById("simRisk").style.color = newRisk.color;
+  }
+
+  function renderTable(city) {
+    const tbody = document.getElementById("zoneTableBody");
+    tbody.innerHTML = "";
+    const sorted = [...city.zones].sort((a, b) => b.lst - a.lst);
+
+    sorted.forEach(z => {
+      const risk = getRisk(z.lst);
+      if (currentFilter !== "all" && risk.label !== currentFilter) return;
+      const uhi = z.lst - city.ruralBaseline;
+
+      const tr = document.createElement("tr");
+      tr.style.cursor = "pointer";
+      tr.addEventListener("click", () => {
+        selectedZoneId = z.id;
+        renderAll();
+        document.getElementById("map-section").scrollIntoView({ behavior: "smooth" });
+      });
+
+      tr.innerHTML = `
+        <td><strong>${z.name}</strong></td>
+        <td>${z.type}</td>
+        <td><strong>${z.lst.toFixed(1)}°C</strong></td>
+        <td>${uhi >= 0 ? "+" : ""}${uhi.toFixed(1)}°C</td>
+        <td>${z.green}%</td>
+        <td><span class="badge ${risk.cls}">${risk.label}</span></td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function renderAdvisory() {
+    const city = CITIES[currentCityKey];
+    const z = city.zones.find(item => item.id === selectedZoneId);
+    const risk = getRisk(z.lst).label;
+
+    const messages = {
+      public: {
+        Severe: `Severe urban heat in ${z.name} (${z.lst.toFixed(1)}°C LST). Avoid direct sun between 11:30 AM and 4:00 PM, carry ORS/water, and use shaded transit corridors.`,
+        High: `High surface heat in ${z.name} (${z.lst.toFixed(1)}°C LST). Wear light breathable cotton, stay hydrated, and schedule outdoor errands in the morning or evening.`,
+        Moderate: `Moderate heat in ${z.name} (${z.lst.toFixed(1)}°C LST). Standard hydration and sun protection recommended during peak afternoon hours.`,
+        Cool: `Comfortable green micro-climate in ${z.name} (${z.lst.toFixed(1)}°C LST). Ideal zone for walking, cycling, and outdoor recreation.`
+      },
+      workers: {
+        Severe: `HIGH ALERT for outdoor/construction workers in ${z.name}: Mandate 15-min shaded hydration breaks every 45 mins and shift heavy labor before 11 AM.`,
+        High: `Elevated heat stress in ${z.name}: Provide shaded rest stations, cool drinking water, and light-colored reflective helmets/vests.`,
+        Moderate: `Manageable heat in ${z.name}: Maintain regular water breaks and monitor workers for early signs of heat fatigue.`,
+        Cool: `Low thermal stress in ${z.name}: Normal outdoor work schedules are safe with standard hydration.`
+      },
+      vulnerable: {
+        Severe: `Critical heat risk for elderly & children in ${z.name}: Stay indoors in ventilated/cooled spaces, close sun-facing curtains, and check on seniors frequently.`,
+        High: `Avoid midday outdoor play or walks in ${z.name}. Use wet-cloth cooling or fans and ensure frequent electrolyte intake.`,
+        Moderate: `Limit direct afternoon sun exposure in ${z.name}; prefer shaded parks for morning/evening walks.`,
+        Cool: `Safe thermal conditions in ${z.name} for elderly citizens and children to enjoy outdoor spaces.`
+      },
+      students: {
+        Severe: `Campus alert near ${z.name}: Shift outdoor sports/drills to early morning, use shaded walkways, and keep water refilling stations active.`,
+        High: `Plan commutes through tree-lined routes near ${z.name}. Avoid parked-vehicle heat islands and stay hydrated between classes.`,
+        Moderate: `Comfortable for regular campus activities in ${z.name}; carry a reusable water bottle during afternoon commutes.`,
+        Cool: `Ideal micro-climate in ${z.name} for outdoor campus events, cycling, and walking.`
+      }
+    };
+
+    document.getElementById("advisoryText").innerHTML = `
+      <strong>${risk} Thermal Level · ${z.name}</strong><br/>
+      ${messages[currentProfile][risk]}
+    `;
+  }
+
+  // Event Listeners
+  document.getElementById("citySelect").addEventListener("change", (e) => {
+    currentCityKey = e.target.value;
+    selectedZoneId = CITIES[currentCityKey].zones[0].id;
+    renderAll();
+  });
+
+  ["sTrees", "sRoofs", "sPavement", "sWater"].forEach(id => {
+    document.getElementById(id).addEventListener("input", updateSimulator);
+  });
+
+  document.getElementById("btnResetSim").addEventListener("click", () => {
+    document.getElementById("sTrees").value = 0;
+    document.getElementById("sRoofs").value = 0;
+    document.getElementById("sPavement").value = 0;
+    document.getElementById("sWater").value = 0;
+    updateSimulator();
+  });
+
+  document.getElementById("btnOptimalSim").addEventListener("click", () => {
+    document.getElementById("sTrees").value = 30;
+    document.getElementById("sRoofs").value = 80;
+    document.getElementById("sPavement").value = 50;
+    document.getElementById("sWater").value = 6;
+    updateSimulator();
+  });
+
+  document.getElementById("filterBar").addEventListener("click", (e) => {
+    if (!e.target.classList.contains("filter-btn")) return;
+    document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
+    e.target.classList.add("active");
+    currentFilter = e.target.dataset.filter;
+    renderTable(CITIES[currentCityKey]);
+  });
+
+  document.getElementById("advisoryTabs").addEventListener("click", (e) => {
+    if (!e.target.classList.contains("tab-btn")) return;
+    document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+    e.target.classList.add("active");
+    currentProfile = e.target.dataset.profile;
+    renderAdvisory();
+  });
+
+  // Initial render
+  renderAll();
+</script>
+</body>
+</html>
